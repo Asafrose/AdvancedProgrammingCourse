@@ -122,7 +122,7 @@ void insertDataToEndList(List* listPointer, char data)
 	}
 }
 
-void printList(List list)
+void PrintList(List list)
 {
 	ListNode* currentNodePointer = list.Head;
 	while (currentNodePointer != NULL)
@@ -135,13 +135,13 @@ void printList(List list)
 void printStudent(Student* studentPointer)
 {
 	printf("First name: ");
-	printList(studentPointer->First);
+	PrintList(studentPointer->First);
 	printf("\n");
 
 	printf("Grade: %d\n", studentPointer->Grade);
 }
 
-void freeList(List* listPointer)
+void FreeList(List* listPointer)
 {
 	ListNode* currentNodePointer = listPointer->Head;
 	while (currentNodePointer != NULL)
@@ -173,5 +173,5 @@ void main()
 
 	printStudent(&student);
 
-	freeList(&student.First);
+	FreeList(&student.First);
 }
