@@ -93,13 +93,7 @@ unsigned int GetYOccurrences(List list, int y)
 	unsigned int result = 0;
 	for (XListNode* currentXNode = list.Head; currentXNode != NULL; currentXNode = currentXNode->Next)
 	{
-		for (YListNode* currentYNode = currentXNode->YList.Head; currentYNode != NULL; currentYNode = currentYNode->Next)
-		{
-			if (currentYNode->Data == y)
-			{
-				result++;
-			}
-		}
+		result += GetYOccurrencesInternal(currentXNode->YList, y);
 	}
 	return result;
 }
@@ -190,16 +184,21 @@ XListNode* AddXListNode(List* list, int x)
 	return newNode;
 }
 
+XListNode* GetXListNode(List* list, int x)
+{
+	XListNode* currentNode = list->Head;
+	while (currentNode != NULL && currentNode->Data != x)
+	{
+		currentNode = currentNode->Next;
+	}
+	return currentNode;
+}
+
 XListNode* GetOrAddXListNode(List* list, int x)
 {
 	if (IsXCordinateExist(*list, x))
 	{
-		XListNode* currentNode = list->Head;
-		while (currentNode->Data != x)
-		{
-			currentNode = currentNode->Next;
-		}
-		return currentNode;
+		return GetXListNode(list, x);
 	}
 
 	return AddXListNode(list, x);
@@ -277,28 +276,68 @@ int InsertCoordinate(List* list, int x, int y)
 	return InsertCoordinateInternal(list, x, y, 0);
 }
 
-List CreateEmptyList()
+YListNode* GetYNode(YList list, int y)
 {
-	List result;
-	result.Head = NULL;
-	result.Tail = NULL;
-	return result;
+	for (YListNode* currentNode = list.Head; currentNode != NULL; currentNode = currentNode->Next)
+	{
+		if (currentNode->Data == y)
+		{
+			return currentNode;
+		}
+	}
+	return NULL;
 }
 
-List getCoordList()
+YListNode* GetNodeBefore(YList list, YListNode* node)
 {
-	List result = CreateEmptyList();
-	printf("Enter number of points:\n");
-	int numberOfPoints;
-	scanf("%d", &numberOfPoints);
-
-	for (int i = 0; i < numberOfPoints; ++i)
+	if (list.Head == node)
 	{
-		int x, y;
-		scanf("%d%d", &x, &y);
-		InsertCoordinateInternal(&result, x, y, 1);
+		return NULL;
 	}
-	return result;
+
+	for (YListNode* currentNode = list.Head; currentNode != NULL; currentNode = currentNode->Next)
+	{
+		if (currentNode->Next == node)
+		{
+			return currentNode;
+		}
+	}
+
+	return NULL;
+}
+
+void RemoveYNodeInternal(YList* list, YListNode* node)
+{
+	YListNode* beforeNode = GetNodeBefore(*list, node);
+
+	if (list->Head == node)
+	{
+		list->Head = node->Next;
+	}
+	if (list->Tail == node)
+	{
+		list->Tail = beforeNode;
+	}
+	if (beforeNode != NULL)
+	{
+		beforeNode->Next = node->Next;
+	}
+	
+	free(node);
+}
+
+int RemoveYNode(YList* list, int y)
+{
+	if (GetYOccurrencesInternal(*list, y) == 0)
+	{
+		return 1;
+	}
+
+	RemoveYNodeInternal(list, GetYNode(*list, y));
+
+	return GetYOccurrencesInternal(*list, y) == 0
+		       ? 0
+		       : 2;
 }
 
 void FreeYList(YList list)
@@ -317,6 +356,69 @@ void FreeXNode(XListNode* node)
 	FreeYList(node->YList);
 	free(node);
 }
+
+void RemoveXNode(List* list, XListNode* node)
+{
+	if (list->Head == node)
+	{
+		list->Head = node->Next;
+	}
+	if (list->Tail == node)
+	{
+		list->Tail = node->Before;
+	}
+
+	if (node->Next != NULL)
+	{
+		node->Next->Before = node->Before;
+	}
+	if (node->Before != NULL)
+	{
+		node->Before->Next = node->Next;
+	}
+
+	FreeXNode(node);
+}
+
+int RemoveCoordinate(List* list, int x, int y)
+{
+	XListNode* xNode = GetXListNode(list, x);
+
+	int result = RemoveYNode(&xNode->YList, y);
+
+	if (CountNodes(xNode->YList) == 0)
+	{
+		RemoveXNode(list, xNode);
+		return 3;
+	}
+
+	return result;
+}
+
+List CreateEmptyList()
+{
+	List result;
+	result.Head = NULL;
+	result.Tail = NULL;
+	return result;
+}
+
+List GetCoordList()
+{
+	List result = CreateEmptyList();
+	printf("Enter number of points:\n");
+	int numberOfPoints;
+	scanf("%d", &numberOfPoints);
+
+	for (int i = 0; i < numberOfPoints; ++i)
+	{
+		int x, y;
+		scanf("%d%d", &x, &y);
+		InsertCoordinateInternal(&result, x, y, 1);
+	}
+	return result;
+}
+
 
 void FreeList(List list)
 {
@@ -338,7 +440,7 @@ void Q1()
 	// i.e. first by the x value and then by y.
 	// for example (5 points): 5 1 2 1 5 2 7 3 3 3 8
 	// are: (1,2),(1,5),(2,7),(3,3),(3,8)
-	List coordList = getCoordList();
+	List coordList = GetCoordList();
 
 	// get the (x,y) to look for
 	scanf("%d%d", &x, &y);
@@ -356,7 +458,7 @@ void Q2()
 	int y;
 	unsigned int res;
 
-	coordList = getCoordList();
+	coordList = GetCoordList();
 
 	// get the (*,y) to look for
 	scanf("%d", &y);
@@ -374,7 +476,7 @@ void Q3()
 	int x;
 	unsigned int res;
 
-	coordList = getCoordList();
+	coordList = GetCoordList();
 
 	// get the (x,*) to look for
 	scanf("%d", &x);
@@ -393,7 +495,7 @@ void Q4()
 	int x, y;
 	int res;
 
-	coordList = getCoordList();
+	coordList = GetCoordList();
 
 	// get the (x,y) to insert
 	scanf("%d%d", &x, &y);
@@ -408,7 +510,33 @@ void Q4()
 	FreeList(coordList);
 }
 
+void Q5()
+{
+	List coordList;
+
+	int x, y;
+	int res;
+
+	coordList = GetCoordList();
+
+	// get the (x,y) to remove
+	scanf("%d%d", &x, &y);
+
+	res = RemoveCoordinate(&coordList, x, y);
+
+	if (res == 1)
+		printf("The point (%d,%d) didn't appear\n", x, y);
+	else if (res == 2)
+		printf("The point (%d,%d) has another occurrence\n", x, y);
+	else if (res == 3)
+		printf("The point (%d,%d) was the only point with this x\n", x, y);
+	else
+		printf("Other\n");
+
+	FreeList(coordList);
+}
+
 void main()
 {
-	Q4();
+	Q5();
 }
