@@ -260,20 +260,12 @@ void AddYListNode(YList* list, int y)
 	InsertYNode(currentNode, newNode);
 }
 
-int InsertCoordinateInternal(List* list, int x, int y, int isMultipleAdds)
-{
-	if (!isMultipleAdds && IsCordinateExist(*list, x, y))
-	{
-		return 1;
-	}
-
-	AddYListNode(&GetOrAddXListNode(list, x)->YList, y);
-	return 0;
-}
-
 int InsertCoordinate(List* list, int x, int y)
 {
-	return InsertCoordinateInternal(list, x, y, 0);
+	AddYListNode(&GetOrAddXListNode(list, x)->YList, y);
+	return GetPairOccurrences(*list, x, y) == 1
+		? 0
+		: 1;
 }
 
 YListNode* GetYNode(YList list, int y)
@@ -414,7 +406,7 @@ List GetCoordList()
 	{
 		int x, y;
 		scanf("%d%d", &x, &y);
-		InsertCoordinateInternal(&result, x, y, 1);
+		InsertCoordinate(&result, x, y);
 	}
 	return result;
 }
