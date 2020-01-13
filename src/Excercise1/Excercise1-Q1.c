@@ -65,7 +65,7 @@ int FindChar(char* string, char character)
 	return -1;
 }
 
-int Main()
+int main()
 {
 	Q2();
 	return 0;
