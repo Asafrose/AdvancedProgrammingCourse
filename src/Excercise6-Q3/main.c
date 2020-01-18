@@ -16,37 +16,33 @@ int* GetIntArr(int* arrSize)
 	return result;
 }
 
-void* Scramble(void* arr, size_t elemSize, int n, int* indArr, void (* copy)(void*, void*))
+void Copy(char* sourceStartingPointer, char* destinationStartingPointer, size_t elementSize)
+{
+	for (int i = 0; i < elementSize; ++i)
+	{
+		*(destinationStartingPointer + i) = *(sourceStartingPointer + i);
+	}
+}
+
+void* Scramble(void* arr, size_t elemSize, int n, int* indArr)
 {
 	void* result = malloc(n * elemSize);
 	for (int i = 0; i < n; ++i)
 	{
-		copy(arr + (indArr[i] * elemSize), result + (i * elemSize));
+		Copy(arr + (indArr[i] * elemSize), result + (i * elemSize), elemSize);
 	}
 	return result;
 }
 
-void CopyInt(void* source, void* destination)
-{
-	*((int*)destination) = *((int*)source);
-}
 
 int* ScrambleInt(int* intArr, int arrSize, int* indArr)
 {
-	return Scramble(intArr, sizeof(int), arrSize, indArr, CopyInt);
-}
-
-void CopyString(void* source, void* destination)
-{
-	char** sourceString = source;
-	char** destinationString = destination;
-	*(destinationString) = malloc(sizeof(char) * (strlen(*sourceString) + 1));
-	strcpy(*destinationString, *sourceString);
+	return Scramble(intArr, sizeof(int), arrSize, indArr);
 }
 
 char** ScrambleString(char** stringArr, int size, int* indArr)
 {
-	return Scramble(stringArr, sizeof(char*), size, indArr, CopyString);
+	return Scramble(stringArr, sizeof(char*), size, indArr);
 }
 
 void PrintIntArr(int* arr, int size)
@@ -99,8 +95,8 @@ void FreeMemory(
 {
 	free(intArr);
 	free(scrambleIntArr);
+	free(scrambleStringArr);
 	FreeStringArr(stringArr, stringSize);
-	FreeStringArr(scrambleStringArr, stringSize);
 }
 
 void main()
